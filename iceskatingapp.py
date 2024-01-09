@@ -2,6 +2,7 @@ import os
 import sys
 import json
 import sqlite3
+from datetime import datetime
 
 # Why are these unused?
 from skater import Skater
@@ -41,10 +42,11 @@ def configure_database(data):
 
         event_result_list = event["results"]
         event_winner = event_result_list[0]
-        event_winner_name = " ".join([event_winner["firstName"], event_winner["lastName"]])
+        event_winner_info = event_winner["skater"]
+        event_winner_name = " ".join([event_winner_info["firstName"], event_winner_info["lastName"]])
 
         event_last = event_result_list[-1]
-        event_time = event_last["time"].strptime("%M:%S.%f")
+        event_time = datetime.strptime(event_last["time"], "%M:%S.%f")
         event_time_seconds = event_time.strftime("%S.%f")
 
         for skater in event_result_list:
@@ -56,23 +58,22 @@ def configure_database(data):
             skater_gender = skater_dict["gender"]
             skater_dob = skater_dict["dateOfBirth"]
             # Initialize Skater CLASS here
-            cursor.execute(f"""INSERT IGNORE INTO skaters (id, first_name, last_name, nationality, gender,
+            cursor.execute(f"""INSERT OR IGNORE INTO skaters(id, first_name, last_name, nationality, gender,
                                                            date_of_birth)
-                               VALUES({skater_id}, {skater_firstname}, {skater_lastname}, {skater_nationality},
-                                      {skater_gender}, {skater_dob})""")
+                               VALUES(?, ?, ?, ?, ?, ?)""",
+                           (skater_id, skater_firstname, skater_lastname, skater_nationality,
+                            skater_gender, skater_dob))
 
         # Initialize Event CLASS here
-        cursor.execute(f"""INSERT IGNORE INTO events (id, name, track_id, date, distance, duration, laps, winner,
+        cursor.execute(f"""INSERT OR IGNORE INTO events(id, name, track_id, date, distance, duration, laps, winner,
                                                       category)
                            VALUES({event_id}, {event_title}, {event_track_id}, {event_date}, {event_distance},
                                   {event_time_seconds}, {event_lapcount}, {event_winner_name}, {event_category})""")
         # Initialize Track CLASS here
-        cursor.execute(f"""INSERT IGNORE INTO tracks (id, name, city, country, outdoor, altitude)
+        cursor.execute(f"""INSERT OR IGNORE INTO tracks(id, name, city, country, outdoor, altitude)
                            VALUES({event_track_id}, {event_track_name}, {event_track_city}, {event_track_country},
                                   {event_track_outdoor}, {event_track_alt})""")
-        # Add class init
     conn.commit()   # Commit all changes at once.
-    pass
 
 
 def main():
