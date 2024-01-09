@@ -9,6 +9,7 @@ from track import Track
 from event import Event
 
 
+# This function will open the JSON file and save it in a dictionary.
 def read_json_file():
     json_file = open('events.json', encoding="utf8")
     events_data_dict = json.load(json_file)
@@ -16,99 +17,49 @@ def read_json_file():
     return events_data_dict
 
 
+# This function will create or update all the database tables.
+# It will also initialize all the required classes.
 def configure_database(data):
-    tracks = [event['track'] for event in data]
-    set_tracks(tracks, data)
-
-
-def set_tracks(tracks: list, data):
-    conn = sqlite3.connect(os.path.join(sys.path[0], 'iceskatingapp.db'))
-    conn.set_trace_callback(print)
-    for track in tracks:
-        query = f"""
-INSERT INTO tracks (id, name, city, country, outdoor, altitude)
-SELECT NULL, ?, ?, ?, ?, ?
-WHERE NOT EXISTS (SELECT 1 FROM tracks WHERE `name` LIKE '%{track['name']}%');
-                 """
-        values = [
-            track['name'],
-            track['city'],
-            track['country'],
-            track['isOutdoor'],
-            track['altitude']
-        ]
-        result = conn.execute(query, values)
-        conn.commit()
-        set_event(data, track['name'], result.lastrowid, conn)
-
-
-def set_event(data, track_name, track_id, conn):
     for event in data:
-        if event['track']['name'] == track_name:
-            query = f"""
-INSERT INTO events (`id`, `name`, `track_id`, `date`, `distance`, `duration`, `laps`, `winner`, `category`)
-SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?
-WHERE NOT EXISTS (SELECT 1 FROM events WHERE id = {event['id']})
-                     """
-            values = [
-                event['id'],
-                event['name'],
-                track_id,
-                event['date'],
-                event['distance'],
-                event['duration'],
-                event['laps'],
-                event['winner'],
-                event['category']
-            ]
-            conn.execute(query, values)
-            conn.commit()
-            set_skaters(conn, data, event)
+        event_id = event["id"]
+        event_title = event["title"]
+        event_date = event["start"]
+        event_distance_dict = event["distance"]
+        event_distance = event_distance_dict["distance"]
+        event_lapcount = event_distance_dict["lapCount"]
+        event_category = event["category"]
 
+        event_track_dict = event["track"]
+        event_track_id = event_track_dict["id"]
+        event_track_name = event_track_dict["name"]
+        event_track_city = event_track_dict["city"]
+        event_track_country = event_track_dict["country"]
+        event_track_outdoor = event_track_dict["isOutdoor"]
+        event_track_alt = event_track_dict["altitude"]
 
-def set_skaters(conn, data, event):
-    for skater in event['skaters']:
-        query = f"""
-INSERT OR IGNORE INTO skaters (id, first_name, last_name, nationality, gender, date_of_birth)
-SELECT ?, ?, ?, ?, ?, ?
-WHERE NOT EXISTS (SELECT 1 FROM skaters WHERE id = {event['id']})
-                 """
-        values = [
-            skater['id'],
-            skater['first_name'],
-            skater['last_name'],
-            skater['nationality'],
-            skater['gender'],
-            skater['date_of_birth']
-        ]
-        for value in values:
-            print(type(value))
-        conn.execute(query, values)
-        set_event_skater(conn, skater['id'], event['id'])
+        event_result_list = event["results"]
+        event_winner = event_result_list[0]
+        event_winner_name = " ".join([event_winner["firstName"], event_winner["lastName"]])
 
+        event_last = event_result_list[-1]
+        event_time = event_last["time"].strptime("%M:%S.%f")
+        event_time_seconds = event_time.strftime("%S.%f")
 
-def set_event_skater(conn, skaterId, eventId):
-    # Why unable to resolve?
-    query = """
-INSERT INTO event_skaters (skater_id, event_id)
-SELECT ?, ?
-WHERE NOT EXISTS (SELECT 1 FROM event_skaters WHERE skater_id = ? AND event_id = ?)
-            """
-    conn.execute(query, [skaterId, eventId, skaterId, eventId])
-    conn.commit()
+        for skater in event_result_list:
+            skater_dict = skater["skater"]
+            skater_id = skater_dict["id"]
+            skater_firstname = skater_dict["firstName"]
+            skater_lastname = skater_dict["lastName"]
+            skater_nationality = skater_dict["country"]
+            skater_gender = skater_dict["gender"]
+            skater_dob = skater_dict["dateOfBirth"]
+            # Initialize Skater here
+        # Initialize Event here
+        # Initialize Track here
 
-
-def truncate_table():
-    # Why is cursor unused here?
-    conn = sqlite3.connect(os.path.join(sys.path[0], 'iceskatingapp.db'))
-    conn.set_trace_callback(print)
-    cursor = conn.cursor()
-    conn.execute("DELETE FROM skaters")
-    conn.execute("DELETE FROM event_skaters")
-    conn.execute("DELETE FROM events")
-    conn.execute("DELETE FROM tracks")
-    conn.commit()
-    conn.close()
+        # Add class init
+        # Write everything into the db
+    pass
 
 
 def main():
