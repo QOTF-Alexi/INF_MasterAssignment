@@ -3,15 +3,16 @@ import sys
 import json
 import sqlite3
 
+# Why are these unused?
 from skater import Skater
 from track import Track
 from event import Event
 
 
 def read_json_file():
-    jsonFile = open('events.json', encoding="utf8")
-    events_data_dict = json.load(jsonFile)
-    jsonFile.close()
+    json_file = open('events.json', encoding="utf8")
+    events_data_dict = json.load(json_file)
+    json_file.close()
     return events_data_dict
 
 
@@ -25,7 +26,7 @@ def set_tracks(tracks: list, data):
     conn.set_trace_callback(print)
     for track in tracks:
         query = f"""
-INSERT INTO tracks (`id`, `name`, `city`, `country`, `outdoor`, `altitude`)
+INSERT INTO tracks (id, name, city, country, outdoor, altitude)
 SELECT NULL, ?, ?, ?, ?, ?
 WHERE NOT EXISTS (SELECT 1 FROM tracks WHERE `name` LIKE '%{track['name']}%');
                  """
@@ -36,14 +37,14 @@ WHERE NOT EXISTS (SELECT 1 FROM tracks WHERE `name` LIKE '%{track['name']}%');
             track['isOutdoor'],
             track['altitude']
         ]
-        executedQuery = conn.execute(query, values)
+        result = conn.execute(query, values)
         conn.commit()
-        set_event(data, track['name'], executedQuery.lastrowid, conn)
+        set_event(data, track['name'], result.lastrowid, conn)
 
 
-def set_event(data, trackName, trackId, conn):
+def set_event(data, track_name, track_id, conn):
     for event in data:
-        if event['track']['name'] == trackName:
+        if event['track']['name'] == track_name:
             query = f"""
 INSERT INTO events (`id`, `name`, `track_id`, `date`, `distance`, `duration`, `laps`, `winner`, `category`)
 SELECT ?, ?, ?, ?, ?, ?, ?, ?, ?
@@ -52,7 +53,7 @@ WHERE NOT EXISTS (SELECT 1 FROM events WHERE id = {event['id']})
             values = [
                 event['id'],
                 event['name'],
-                trackId,
+                track_id,
                 event['date'],
                 event['distance'],
                 event['duration'],
@@ -82,23 +83,24 @@ WHERE NOT EXISTS (SELECT 1 FROM skaters WHERE id = {event['id']})
         ]
         for value in values:
             print(type(value))
-        return
         conn.execute(query, values)
         set_event_skater(conn, skater['id'], event['id'])
 
 
 def set_event_skater(conn, skaterId, eventId):
+    # Why unable to resolve?
     query = """
-        INSERT INTO event_skaters (skater_id, event_id)
-        SELECT ?, ?
-        WHERE NOT EXISTS (SELECT 1 FROM event_skaters WHERE skater_id = ? AND event_id = ?)
-    """
+INSERT INTO event_skaters (skater_id, event_id)
+SELECT ?, ?
+WHERE NOT EXISTS (SELECT 1 FROM event_skaters WHERE skater_id = ? AND event_id = ?)
+            """
     conn.execute(query, [skaterId, eventId, skaterId, eventId])
     conn.commit()
 
 
 def truncate_table():
-    conn = sqlite3.connect(os.path.join(sys.path[0], 'skatersapp.db'))
+    # Why is cursor unused here?
+    conn = sqlite3.connect(os.path.join(sys.path[0], 'iceskatingapp.db'))
     conn.set_trace_callback(print)
     cursor = conn.cursor()
     conn.execute("DELETE FROM skaters")
@@ -107,6 +109,7 @@ def truncate_table():
     conn.execute("DELETE FROM tracks")
     conn.commit()
     conn.close()
+
 
 def main():
     data = read_json_file()

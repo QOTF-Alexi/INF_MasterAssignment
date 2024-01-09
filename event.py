@@ -19,12 +19,14 @@ class Event:
         self.category = category
 
     def add_skater(self, skater: Skater):
+        # Why are these unresolved?
         conn = sqlite3.connect('iceskatingsapp.db')
         query = """
 INSERT INTO event_skaters (skater_id, event_id)
 SELECT ?, ?
 WHERE NOT EXISTS (SELECT 1 FROM event_skaters WHERE skater_id = ? AND event_id = ?)
                 """
+        # Why is it not using a cursor?
         conn.execute(query, [skater.id, self.id, skater.id, self.id])
         conn.commit()
 
@@ -38,12 +40,14 @@ SELECT * FROM skaters WHERE id IN (SELECT skater_id FROM event_skaters WHERE eve
         return fetch_skaters
 
     def get_track(self) -> Track:
+        # Get track for this event.
         pass
 
     def convert_date(self, to_format: str) -> str:
         return datetime.strftime(self.date, to_format)
 
     def convert_duration(self, to_format: str) -> str:
+        # self.duration is noted in M:SS:mmm
         pass
 
     # Representation method
