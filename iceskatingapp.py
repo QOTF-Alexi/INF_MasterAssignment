@@ -20,6 +20,8 @@ def read_json_file():
 # This function will create or update all the database tables.
 # It will also initialize all the required classes.
 def configure_database(data):
+    conn = sqlite3.connect("iceskatingapp.db")
+    cursor = conn.cursor()
     for event in data:
         event_id = event["id"]
         event_title = event["title"]
@@ -53,12 +55,23 @@ def configure_database(data):
             skater_nationality = skater_dict["country"]
             skater_gender = skater_dict["gender"]
             skater_dob = skater_dict["dateOfBirth"]
-            # Initialize Skater here
-        # Initialize Event here
-        # Initialize Track here
+            # Initialize Skater CLASS here
+            cursor.execute(f"""INSERT IGNORE INTO skaters (id, first_name, last_name, nationality, gender,
+                                                           date_of_birth)
+                               VALUES({skater_id}, {skater_firstname}, {skater_lastname}, {skater_nationality},
+                                      {skater_gender}, {skater_dob})""")
 
+        # Initialize Event CLASS here
+        cursor.execute(f"""INSERT IGNORE INTO events (id, name, track_id, date, distance, duration, laps, winner,
+                                                      category)
+                           VALUES({event_id}, {event_title}, {event_track_id}, {event_date}, {event_distance},
+                                  {event_time_seconds}, {event_lapcount}, {event_winner_name}, {event_category})""")
+        # Initialize Track CLASS here
+        cursor.execute(f"""INSERT IGNORE INTO tracks (id, name, city, country, outdoor, altitude)
+                           VALUES({event_track_id}, {event_track_name}, {event_track_city}, {event_track_country},
+                                  {event_track_outdoor}, {event_track_alt})""")
         # Add class init
-        # Write everything into the db
+    conn.commit()   # Commit all changes at once.
     pass
 
 
