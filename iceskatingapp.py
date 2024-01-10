@@ -45,9 +45,18 @@ def configure_database(data):
         event_winner_info = event_winner["skater"]
         event_winner_name = " ".join([event_winner_info["firstName"], event_winner_info["lastName"]])
 
-        event_last = event_result_list[-1]
-        event_time = datetime.strptime(event_last["time"], "%M:%S.%f")
-        event_time_seconds = event_time.strftime("%S.%f")
+        selector = -1
+        event_last = event_result_list[selector]
+        while event_last["time"] is None:
+            selector -= 1
+            event_last = event_result_list[selector]
+        event_time = event_last["time"].split(sep=":")
+        if len(event_time) == 2:
+            event_time[1] = float(event_time[1]) + float(event_time[0]) * 60.000
+            event_time.remove(event_time[0])
+        else:
+            pass
+        event_time_seconds = event_time[0]
 
         for skater in event_result_list:
             skater_dict = skater["skater"]
@@ -67,20 +76,20 @@ def configure_database(data):
         # Initialize Event CLASS here
         cursor.execute(f"""INSERT OR IGNORE INTO events(id, name, track_id, date, distance, duration, laps, winner,
                                                       category)
-                           VALUES({event_id}, {event_title}, {event_track_id}, {event_date}, {event_distance},
-                                  {event_time_seconds}, {event_lapcount}, {event_winner_name}, {event_category})""")
+                           VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                       (event_id, event_title, event_track_id, event_date, event_distance,
+                        event_time_seconds, event_lapcount, event_winner_name, event_category))
         # Initialize Track CLASS here
         cursor.execute(f"""INSERT OR IGNORE INTO tracks(id, name, city, country, outdoor, altitude)
-                           VALUES({event_track_id}, {event_track_name}, {event_track_city}, {event_track_country},
-                                  {event_track_outdoor}, {event_track_alt})""")
+                           VALUES(?, ?, ?, ?, ?, ?)""",
+                       (event_track_id, event_track_name, event_track_city, event_track_country,
+                        event_track_outdoor, event_track_alt))
     conn.commit()   # Commit all changes at once.
 
 
 def main():
     data = read_json_file()
     configure_database(data)
-    # truncate_table()
-    # print(data)
 
 
 if __name__ == "__main__":
