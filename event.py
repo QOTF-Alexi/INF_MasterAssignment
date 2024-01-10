@@ -18,15 +18,16 @@ class Event:
         self.winner = winner
         self.category = category
 
+    # Connect a skater to this event
     def add_skater(self, skater: Skater):
         conn = sqlite3.connect('iceskatingsapp.db')
         cursor = conn.cursor()
         cursor.execute(f"""
-INSERT INTO event_skaters (skater_id, event_id)
-VALUES ({Skater.id}, {self.id}) 
-                        """)
+INSERT INTO event_skaters(skater_id, event_id)
+VALUES (?, ?)""", (skater.id, self.id))
         conn.commit()
 
+    # Gets skaters that participate in this event.
     def get_skaters(self) -> list:
         conn = sqlite3.connect('iceskatingapp.db')
         cursor = conn.cursor()
@@ -36,18 +37,22 @@ SELECT * FROM skaters WHERE id IN (SELECT skater_id FROM event_skaters WHERE eve
         fetch_skaters = cursor.fetchall()
         return fetch_skaters
 
+    # Gets track object where id matches track_id of the event.
     def get_track(self) -> Track:
         conn = sqlite3.connect('iceskatingsapp.db')
         cursor = conn.cursor()
-        cursor.execute(f"""SELECT * FROM tracks WHERE track_id = {self.track_id}""")
+        cursor.execute(f"""SELECT * FROM tracks WHERE id = {self.track_id}""")
         track = cursor.fetchone()
         return track
 
+    # Converts date to specified format.
     def convert_date(self, to_format: str) -> str:
         return datetime.strftime(self.date, to_format)
 
+    # Converts event duration to specified format.
     def convert_duration(self, to_format: str) -> str:
-        # self.duration is noted in M:SS:mmm
+        converted = datetime.strptime(str(self.duration), "%S.%f")
+        return converted.strftime(to_format)
         pass
 
     # Representation method
