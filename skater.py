@@ -23,9 +23,9 @@ class Skater:
         query = "SELECT * FROM events WHERE id IN (SELECT event_id FROM event_skaters WHERE skater_id = ?)"
         cursor = conn.cursor()
         cursor.execute(query, [self.id])
-        expeditions = cursor.fetchall()
+        events = cursor.fetchall()
 
-        return expeditions
+        return events
 
     # Representation method
     # This will format the output in the correct order

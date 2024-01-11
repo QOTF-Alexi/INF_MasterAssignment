@@ -7,6 +7,7 @@ from datetime import datetime
 from skater import Skater
 from track import Track
 from event import Event
+from iceskatingreporter import Reporter
 
 
 # This function will open the JSON file and save it in a dictionary.

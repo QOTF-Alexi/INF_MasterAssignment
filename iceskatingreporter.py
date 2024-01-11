@@ -1,30 +1,61 @@
 from track import Track
 from event import Event
 from skater import Skater
+
 from datetime import datetime
+import sqlite3
 
 
 class Reporter:
+    def __init__(self):
+        self.conn = sqlite3.connect("iceskatingapp.db")
+        self.cursor = (self.conn.cursor())
+
     # How many skaters are there? -> int
     def total_amount_of_skaters(self) -> int:
-        pass
+        self.cursor.execute("""SELECT * FROM skaters""")
+        skaters = self.cursor.fetchall()
+        return len(skaters)
 
     # What is the highest track? -> Track
     def highest_track(self) -> Track:
-        pass
+        self.cursor.execute("""SELECT * FROM tracks WHERE altitude = (SELECT MAX(altitude) FROM tracks)""")
+        track = self.cursor.fetchone()
+        return track
 
     # What is the longest and shortest event? -> tuple[Event, Event]
     def longest_and_shortest_event(self) -> tuple[Event, Event]:
-        pass
+        self.cursor.execute("""SELECT * FROM events WHERE duration = (SELECT MAX(duration) FROM events)""")
+        longest = self.cursor.fetchone()
+        self.cursor.execute("""SELECT * FROM events WHERE duration = (SELECT MIN(duration) FROM events)""")
+        shortest = self.cursor.fetchone()
+        return tuple((longest, shortest))
 
     # Which event has the most laps for the given track_id -> tuple[Event, ...]
     def events_with_most_laps_for_track(self, track_id: int) -> tuple[Event, ...]:
-        pass
+        self.cursor.execute(f"""SELECT * FROM events WHERE track_id = {track_id}
+                                AND laps = (SELECT MAX(laps) FROM events)""")
+        events = tuple(self.cursor.fetchall())
+        return events
 
     # Which skaters have made the most events -> tuple[Skater, ...]
     # Which skaters have made the most succesful events -> tuple[Skater, ...]
     def skaters_with_most_events(self, only_wins: bool = False) -> tuple[Skater, ...]:
-        pass
+        if only_wins:
+            # Get skater ID
+            # Get every event ID where connected
+            # Get event winner
+            # Match event winner to skater
+            # ???
+            # Return
+            pass
+        else:
+            # Get skater ID
+            # Get every event ID where connected
+            # Get skater name
+            # ???
+            # Return
+            pass
 
     # Which track has the most events -> Track
     def tracks_with_most_events(self) -> tuple[Track, ...]:
@@ -33,12 +64,18 @@ class Reporter:
     # Which track had the first event? -> Event
     # Which track had the first outdoor event? -> Event
     def get_first_event(self, outdoor_only: bool = False) -> Event:
-        pass
+        if outdoor_only:
+            pass
+        else:
+            pass
 
     # Which track had the latest event? -> event
     # Which track had the latetstoutdoor event? -> event
     def get_latest_event(self, outdoor_only: bool = False) -> Event:
-        pass
+        if outdoor_only:
+            pass
+        else:
+            pass
 
     # Which skaters have raced track Z between period X and Y? -> tuple[Skater, ...]
     # Based on given parameter `to_csv = True` should generate CSV file as  `Skaters on Track Z between X and Y.csv`
@@ -57,7 +94,12 @@ class Reporter:
     # CSV example (this are also the headers):
     #   id, name, city, country, outdoor, altitude
     def get_tracks_in_country(self, country: str, to_csv: bool = False) -> tuple[Track, ...]:
-        pass
+        self.cursor.execute("""SELECT * FROM tracks WHERE country = ?""", country)
+        tracks = self.cursor.fetchall()
+        if to_csv:
+            pass
+        else:
+            return tuple(tracks)
 
     # Which skaters have nationality X? -> tuple[Skater, ...]
     # Based on given parameter `to_csv = True` should generate CSV file as  `Skaters with nationality X.csv`
@@ -66,4 +108,9 @@ class Reporter:
     # CSV example (this are also the headers):
     #   id, first_name, last_name, nationality, gender, date_of_birth
     def get_skaters_with_nationality(self, nationality: str, to_csv: bool = False) -> tuple[Skater, ...]:
-        pass
+        self.cursor.execute("""SELECT * FROM skaters WHERE nationality = ?""", nationality)
+        skaters = self.cursor.fetchall()
+        if to_csv:
+            pass
+        else:
+            return tuple(skaters)
