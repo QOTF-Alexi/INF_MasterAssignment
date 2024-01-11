@@ -5,17 +5,20 @@ from track import Track
 
 # Test to check if the age of a skater is correct based on the date_of_birth
 def test_age_of_skater():
-    raise NotImplementedError()
+    ageSkater = Skater(1, 'Henk', 'Kei', 'NLD', 'M', '1994-04-04')
+    assert ageSkater.get_age() == 29
 
 
 # Test to check if the amount of events for a specific skater is returned correctly
 def test_amount_of_events_of_skater():
-    raise NotImplementedError()
+    testSkater = Skater(314, 'Claudia', 'Pechstein', 'GER', 'F', '1972-02-22')
+    assert len(testSkater.get_events()) == 11
 
 
 # Test to check if the amount of events for a specific track is returned correctly
 def test_amount_of_events_of_track():
-    raise NotImplementedError()
+    testTrack = Track(29, 'Hamar Olympic Hall', 'Hamar', 'NOR', False, 123)
+    assert len(testTrack.get_events()) == 12
 
 
 # Test to check if the returned date matches the specified format for that event date
@@ -30,7 +33,8 @@ def test_event_duration_conversion():
 
 # Test to check the amount of skaters on a specified event
 def test_amount_of_skaters_on_event():
-    raise NotImplementedError()
+    testEvent = Event(1, "Essent ISU World Cup - 1500m Men Division A", 29, "2003-11-08", 1500, 117.920, 4, "Erben Wennemars", "M")
+    assert len(testEvent.get_skaters()) == 56
 
 
 # Test to validate if the given track of a specified event is correct
