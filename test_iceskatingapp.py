@@ -1,17 +1,22 @@
 from skater import Skater
 from event import Event
 from track import Track
+from datetime import datetime
+
+
+testEvent = Event(1, "Essent ISU World Cup - 1500m Men Division A", 29, datetime(2003, 11, 8),
+                      1500, 117.920, 4, "Erben Wennemars", "M")
 
 
 # Test to check if the age of a skater is correct based on the date_of_birth
 def test_age_of_skater():
-    ageSkater = Skater(1, 'Henk', 'Kei', 'NLD', 'M', '1994-04-04')
+    ageSkater = Skater(1, 'Henk', 'Kei', 'NLD', 'M', datetime(1994, 4, 4))
     assert ageSkater.get_age() == 29
 
 
 # Test to check if the amount of events for a specific skater is returned correctly
 def test_amount_of_events_of_skater():
-    testSkater = Skater(314, 'Claudia', 'Pechstein', 'GER', 'F', '1972-02-22')
+    testSkater = Skater(314, 'Claudia', 'Pechstein', 'GER', 'F', datetime(1972, 2, 22))
     assert len(testSkater.get_events()) == 11
 
 
@@ -33,10 +38,9 @@ def test_event_duration_conversion():
 
 # Test to check the amount of skaters on a specified event
 def test_amount_of_skaters_on_event():
-    testEvent = Event(1, "Essent ISU World Cup - 1500m Men Division A", 29, "2003-11-08", 1500, 117.920, 4, "Erben Wennemars", "M")
     assert len(testEvent.get_skaters()) == 56
 
 
 # Test to validate if the given track of a specified event is correct
 def test_track_on_event():
-    raise NotImplementedError()
+    assert testEvent.get_track() == "?"
