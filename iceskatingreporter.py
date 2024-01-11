@@ -4,6 +4,8 @@ from skater import Skater
 
 from datetime import datetime
 import sqlite3
+import csv
+from os.path import exists
 
 
 class Reporter:
@@ -59,7 +61,26 @@ class Reporter:
 
     # Which track has the most events -> Track
     def tracks_with_most_events(self) -> tuple[Track, ...]:
-        pass
+        maxEventCount = 0
+        maxTrackId = []
+        self.cursor.execute("""SELECT COUNT(*) FROM tracks""")
+        number_of_tracks = self.cursor.fetchone()
+        for track in number_of_tracks:
+            # Assuming sequential numbering
+            self.cursor.execute(f"""SELECT COUNT(*) FROM events WHERE track_id = {track}""")
+            currentEventCount = self.cursor.fetchone()
+            if currentEventCount > maxEventCount:
+                maxEventCount = currentEventCount
+                maxTrackId = [track]
+            elif currentEventCount == maxEventCount and track not in maxTrackId:
+                maxTrackId.append(track)
+        maxTrackNames = []
+        iteration = 0
+        while iteration < (len(maxTrackId) - 1):
+            self.cursor.execute(f"""SELECT * FROM tracks WHERE track_id = {maxTrackId[iteration]}""")
+            maxTrackNames.append(self.cursor.fetchone())
+            iteration += 1
+        return tuple(maxTrackNames)
 
     # Which track had the first event? -> Event
     # Which track had the first outdoor event? -> Event
@@ -97,7 +118,16 @@ class Reporter:
         self.cursor.execute("""SELECT * FROM tracks WHERE country = ?""", country)
         tracks = self.cursor.fetchall()
         if to_csv:
-            pass
+            csvname = "".join(['Tracks in country ', country, '.csv'])
+            if not exists(csvname):
+                with open(csvname, 'w', newline='') as csvfile:
+                    trackFile = csv.writer(csvfile, delimiter=' ', encoding='utf8')
+                    trackFile.writerow(['id', 'name', 'city', 'country', 'outdoor', 'altitude'])
+            with open(csvname, 'w', newline='') as csvfile:
+                trackFile = csv.writer(csvfile, delimiter=' ', encoding='utf8')
+                for track in tracks:
+                    trackFile.writerow(track)
+            print("File saved as", csvname)
         else:
             return tuple(tracks)
 
@@ -111,6 +141,15 @@ class Reporter:
         self.cursor.execute("""SELECT * FROM skaters WHERE nationality = ?""", nationality)
         skaters = self.cursor.fetchall()
         if to_csv:
-            pass
+            csvname = "".join(['Skaters with nationality ', nationality, '.csv'])
+            if not exists(csvname):
+                with open(csvname, 'w', newline='') as csvfile:
+                    skatersFile = csv.writer(csvfile, delimiter=' ', encoding='utf8')
+                    skatersFile.writerow(['id', 'first_name', 'last_name', 'nationality', 'gender', 'date_of_birth'])
+            with open(csvname, 'w', newline='') as csvfile:
+                skatersFile = csv.writer(csvfile, delimiter=' ', encoding='utf8')
+                for skater in skaters:
+                    skatersFile.writerow(skater)
+            print("File saved as", csvname)
         else:
             return tuple(skaters)

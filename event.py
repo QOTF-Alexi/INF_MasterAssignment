@@ -53,7 +53,6 @@ SELECT * FROM skaters WHERE id IN (SELECT skater_id FROM event_skaters WHERE eve
     def convert_duration(self, to_format: str) -> str:
         converted = datetime.strptime(str(self.duration), "%S.%f")
         return converted.strftime(to_format)
-        pass
 
     # Representation method
     # This will format the output in the correct order
