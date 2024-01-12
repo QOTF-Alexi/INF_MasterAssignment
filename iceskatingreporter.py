@@ -37,8 +37,8 @@ class Reporter:
 
     # Which event has the most laps for the given track_id -> tuple[Event, ...]
     def events_with_most_laps_for_track(self, track_id: int) -> tuple[Event, ...]:
-        self.cursor.execute("""SELECT * FROM events WHERE track_id = ?
-                                AND laps = (SELECT MAX(laps) FROM events)""", str(track_id))
+        self.cursor.execute(f"""SELECT * FROM events WHERE track_id = {track_id}
+                                AND laps = (SELECT MAX(laps) FROM events)""")
         events = self.cursor.fetchall()
         events_tup = []
         for row in events:
@@ -54,7 +54,7 @@ class Reporter:
         maxId = []
         if only_wins:
             for skater in allSkaters:
-                self.cursor.execute("""SELECT * FROM events WHERE winner = ?""", " ".join([skater[1], skater[2]]))
+                self.cursor.execute(f"""SELECT * FROM events WHERE winner = {" ".join([skater[1], skater[2]])}""")
                 won_on = len(self.cursor.fetchall())
                 if won_on > maxCount:
                     maxId.clear()
@@ -62,13 +62,13 @@ class Reporter:
                     maxCount = won_on
         else:
             for skater in allSkaters:
-                self.cursor.execute("""SELECT * FROM event_skaters WHERE skater_id = ?""", skater[0])
+                self.cursor.execute(f"""SELECT * FROM event_skaters WHERE skater_id = {skater[0]}""")
                 skated_on = len(self.cursor.fetchall())
                 if skated_on > maxCount:
                     maxId.clear()
                     maxId.append(skater[0])
                     maxCount = skated_on
-        self.cursor.execute("""SELECT * FROM skaters WHERE id IN ?""". maxId)
+        self.cursor.execute(f"""SELECT * FROM skaters WHERE id IN {maxId}""")
         skatedMost = self.cursor.fetchall()
         skatedMost_tup = []
         for row in skatedMost:
@@ -83,7 +83,7 @@ class Reporter:
         number_of_tracks = self.cursor.fetchone()
         for track in number_of_tracks:
             # Assuming sequential numbering
-            self.cursor.execute("""SELECT COUNT(*) FROM events WHERE track_id = ?""", track)
+            self.cursor.execute(f"""SELECT COUNT(*) FROM events WHERE track_id = {track}""")
             currentEventCount = self.cursor.fetchone()
             if currentEventCount > maxEventCount:
                 maxEventCount = currentEventCount
@@ -93,7 +93,7 @@ class Reporter:
         maxTrackNames = []
         iteration = 0
         while iteration < (len(maxTrackId) - 1):
-            self.cursor.execute("""SELECT * FROM tracks WHERE id = ?""", maxTrackId[iteration])
+            self.cursor.execute(f"""SELECT * FROM tracks WHERE track_id = {maxTrackId[iteration]}""")
             maxTrackNames.append(self.cursor.fetchone())
             iteration += 1
         return tuple(maxTrackNames)
@@ -107,8 +107,8 @@ class Reporter:
             outdoorEvents_trackIds = []
             for element in outdoorEvents:
                 outdoorEvents_trackIds.append(element[0])
-            self.cursor.execute("""SELECT * FROM events WHERE date = (SELECT MIN(date) FROM events)
-                                    AND track_id IN ?""", outdoorEvents_trackIds)
+            self.cursor.execute(f"""SELECT * FROM events WHERE date = (SELECT MIN(date) FROM events)
+                                    AND track_id IN {outdoorEvents_trackIds}""")
             firstEvent = self.cursor.fetchone()
         else:
             self.cursor.execute(""" SELECT * FROM events WHERE date = (SELECT MIN(date) FROM events)""")
@@ -124,8 +124,8 @@ class Reporter:
             outdoorEvents_trackIds = []
             for element in outdoorEvents:
                 outdoorEvents_trackIds.append(element[0])
-            self.cursor.execute("""SELECT * FROM events WHERE date = (SELECT MAX(date) FROM events)
-                                    AND track_id IN ?""", outdoorEvents_trackIds)
+            self.cursor.execute(f"""SELECT * FROM events WHERE date = (SELECT MAX(date) FROM events)
+                                    AND track_id IN {outdoorEvents_trackIds}""")
             firstEvent = self.cursor.fetchone()
         else:
             self.cursor.execute(f""" SELECT * FROM events WHERE date = (SELECT MAX(date) FROM events)""")
@@ -141,13 +141,12 @@ class Reporter:
     #   id, first_name, last_name, nationality, gender, date_of_birth
     def get_skaters_that_skated_track_between(self, track: Track, start: datetime, end: datetime, to_csv: bool = False)\
             -> tuple[Skater, ...]:
-        self.cursor.execute("""SELECT * FROM events WHERE track_id = ? AND date BETWEEN ? AND ?""",
-                            (track.id, start, end))
+        self.cursor.execute(f"""SELECT * FROM events WHERE track = {track.id} AND date BETWEEN {start} AND {end}""")
         events_in_time_on_track = self.cursor.fetchall()
         event_ids = []
         for element in events_in_time_on_track:
             event_ids.append(element[0])
-        self.cursor.execute("""SELECT * FROM event_skaters WHERE event_id in ?""", event_ids)
+        self.cursor.execute(f"""SELECT * FROM event_skaters WHERE event_id in {event_ids}""")
         skaters = self.cursor.fetchall()
         if to_csv:
             csvname = "".join(['Skaters on Track ', track.name, ' between period ', start, 'and', end, '.csv'])
