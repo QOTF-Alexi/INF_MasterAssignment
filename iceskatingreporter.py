@@ -23,41 +23,57 @@ class Reporter:
     def highest_track(self) -> Track:
         self.cursor.execute("""SELECT * FROM tracks WHERE altitude = (SELECT MAX(altitude) FROM tracks)""")
         track = self.cursor.fetchone()
-        return track
+        return Track(*track)
 
     # What is the longest and shortest event? -> tuple[Event, Event]
     def longest_and_shortest_event(self) -> tuple[Event, Event]:
         self.cursor.execute("""SELECT * FROM events WHERE duration = (SELECT MAX(duration) FROM events)""")
         longest = self.cursor.fetchone()
+        longest_evnt = Event(*longest)
         self.cursor.execute("""SELECT * FROM events WHERE duration = (SELECT MIN(duration) FROM events)""")
         shortest = self.cursor.fetchone()
-        return tuple((longest, shortest))
+        shortest_evnt = Event(*shortest)
+        return tuple((longest_evnt, shortest_evnt))
 
     # Which event has the most laps for the given track_id -> tuple[Event, ...]
     def events_with_most_laps_for_track(self, track_id: int) -> tuple[Event, ...]:
         self.cursor.execute(f"""SELECT * FROM events WHERE track_id = {track_id}
                                 AND laps = (SELECT MAX(laps) FROM events)""")
-        events = tuple(self.cursor.fetchall())
-        return events
+        events = self.cursor.fetchall()
+        events_tup = []
+        for row in events:
+            events_tup.append(Event(*row))
+        return tuple(events_tup)
 
     # Which skaters have made the most events -> tuple[Skater, ...]
     # Which skaters have made the most succesful events -> tuple[Skater, ...]
     def skaters_with_most_events(self, only_wins: bool = False) -> tuple[Skater, ...]:
+        self.cursor.execute(f"""SELECT * FROM skaters""")
+        allSkaters = self.cursor.fetchall()
+        maxCount = 0
+        maxId = []
         if only_wins:
-            # Get skater ID
-            # Get every event ID where connected
-            # Get event winner
-            # Match event winner to skater
-            # ???
-            # Return
-            pass
+            for skater in allSkaters:
+                self.cursor.execute(f"""SELECT * FROM events WHERE winner = {" ".join([skater[1], skater[2]])}""")
+                won_on = len(self.cursor.fetchall())
+                if won_on > maxCount:
+                    maxId.clear()
+                    maxId.append(skater[0])
+                    maxCount = won_on
         else:
-            # Get skater ID
-            # Get every event ID where connected
-            # Get skater name
-            # ???
-            # Return
-            pass
+            for skater in allSkaters:
+                self.cursor.execute(f"""SELECT * FROM event_skaters WHERE skater_id = {skater[0]}""")
+                skated_on = len(self.cursor.fetchall())
+                if skated_on > maxCount:
+                    maxId.clear()
+                    maxId.append(skater[0])
+                    maxCount = skated_on
+        self.cursor.execute(f"""SELECT * FROM skaters WHERE id IN {maxId}""")
+        skatedMost = self.cursor.fetchall()
+        skatedMost_tup = []
+        for row in skatedMost:
+            skatedMost_tup.append(Skater(*row))
+        return tuple(skatedMost)
 
     # Which track has the most events -> Track
     def tracks_with_most_events(self) -> tuple[Track, ...]:
@@ -129,7 +145,10 @@ class Reporter:
                     trackFile.writerow(track)
             print("File saved as", csvname)
         else:
-            return tuple(tracks)
+            track_tup = []
+            for row in tracks:
+                track_tup.append(Track(*row))
+            return tuple(track_tup)
 
     # Which skaters have nationality X? -> tuple[Skater, ...]
     # Based on given parameter `to_csv = True` should generate CSV file as  `Skaters with nationality X.csv`

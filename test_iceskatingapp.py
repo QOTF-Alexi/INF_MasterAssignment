@@ -30,7 +30,6 @@ def test_amount_of_events_of_track():
 def test_event_date_conversion():
     raise NotImplementedError()
 
-
 # Test to check if the duration is converted from 1H19 to the specified format
 def test_event_duration_conversion():
     raise NotImplementedError()
