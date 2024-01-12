@@ -6,15 +6,12 @@ from track import Track
 
 
 class Event:
-    def __init__(self, id: int, name: str, track_id: int, date, distance: int, duration: float, laps: int,
+    def __init__(self, id: int, name: str, track_id: int, date: datetime, distance: int, duration: float, laps: int,
                  winner: str, category: str) -> None:
         self.id = id
         self.name = name
         self.track_id = track_id
-        if type(date) is "datetime":
-            self.date = date
-        else:
-            self.date = datetime.strptime(date, "%Y-%m-%d")
+        self.date = date
         self.distance = distance
         self.duration = duration
         self.laps = laps
