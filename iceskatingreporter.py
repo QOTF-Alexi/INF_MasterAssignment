@@ -102,17 +102,35 @@ class Reporter:
     # Which track had the first outdoor event? -> Event
     def get_first_event(self, outdoor_only: bool = False) -> Event:
         if outdoor_only:
-            pass
+            self.cursor.execute(f""" SELECT * FROM tracks WHERE outdoor = 1""")
+            outdoorEvents = self.cursor.fetchall()
+            outdoorEvents_trackIds = []
+            for element in outdoorEvents:
+                outdoorEvents_trackIds.append(element[0])
+            self.cursor.execute(f"""SELECT * FROM events WHERE date = (SELECT MIN(date) FROM events)
+                                    AND track_id IN {outdoorEvents_trackIds}""")
+            firstEvent = self.cursor.fetchone()
         else:
-            pass
+            self.cursor.execute(f""" SELECT * FROM events WHERE date = (SELECT MIN(date) FROM events)""")
+            firstEvent = self.cursor.fetchone()
+        return Event(*firstEvent)
 
     # Which track had the latest event? -> event
     # Which track had the latetstoutdoor event? -> event
     def get_latest_event(self, outdoor_only: bool = False) -> Event:
         if outdoor_only:
-            pass
+            self.cursor.execute(f""" SELECT * FROM tracks WHERE outdoor = 1""")
+            outdoorEvents = self.cursor.fetchall()
+            outdoorEvents_trackIds = []
+            for element in outdoorEvents:
+                outdoorEvents_trackIds.append(element[0])
+            self.cursor.execute(f"""SELECT * FROM events WHERE date = (SELECT MAX(date) FROM events)
+                                    AND track_id IN {outdoorEvents_trackIds}""")
+            firstEvent = self.cursor.fetchone()
         else:
-            pass
+            self.cursor.execute(f""" SELECT * FROM events WHERE date = (SELECT MAX(date) FROM events)""")
+            firstEvent = self.cursor.fetchone()
+        return Event(*firstEvent)
 
     # Which skaters have raced track Z between period X and Y? -> tuple[Skater, ...]
     # Based on given parameter `to_csv = True` should generate CSV file as  `Skaters on Track Z between X and Y.csv`
