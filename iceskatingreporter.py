@@ -48,7 +48,7 @@ class Reporter:
     # Which skaters have made the most events -> tuple[Skater, ...]
     # Which skaters have made the most succesful events -> tuple[Skater, ...]
     def skaters_with_most_events(self, only_wins: bool = False) -> tuple[Skater, ...]:
-        self.cursor.execute(f"""SELECT * FROM skaters""")
+        self.cursor.execute("""SELECT * FROM skaters""")
         allSkaters = self.cursor.fetchall()
         maxCount = 0
         maxId = []
@@ -102,7 +102,7 @@ class Reporter:
     # Which track had the first outdoor event? -> Event
     def get_first_event(self, outdoor_only: bool = False) -> Event:
         if outdoor_only:
-            self.cursor.execute(f""" SELECT * FROM tracks WHERE outdoor = 1""")
+            self.cursor.execute(""" SELECT * FROM tracks WHERE outdoor = 1""")
             outdoorEvents = self.cursor.fetchall()
             outdoorEvents_trackIds = []
             for element in outdoorEvents:
@@ -111,7 +111,7 @@ class Reporter:
                                     AND track_id IN {outdoorEvents_trackIds}""")
             firstEvent = self.cursor.fetchone()
         else:
-            self.cursor.execute(f""" SELECT * FROM events WHERE date = (SELECT MIN(date) FROM events)""")
+            self.cursor.execute(""" SELECT * FROM events WHERE date = (SELECT MIN(date) FROM events)""")
             firstEvent = self.cursor.fetchone()
         return Event(*firstEvent)
 
@@ -119,7 +119,7 @@ class Reporter:
     # Which track had the latetstoutdoor event? -> event
     def get_latest_event(self, outdoor_only: bool = False) -> Event:
         if outdoor_only:
-            self.cursor.execute(f""" SELECT * FROM tracks WHERE outdoor = 1""")
+            self.cursor.execute(""" SELECT * FROM tracks WHERE outdoor = 1""")
             outdoorEvents = self.cursor.fetchall()
             outdoorEvents_trackIds = []
             for element in outdoorEvents:
@@ -139,7 +139,8 @@ class Reporter:
     # otherwise it should just return the value as tuple(Skater, ...)
     # CSV example (this are also the headers):
     #   id, first_name, last_name, nationality, gender, date_of_birth
-    def get_skaters_that_skated_track_between(self, track: Track, start: datetime, end: datetime, to_csv: bool = False) -> tuple[Skater, ...]:
+    def get_skaters_that_skated_track_between(self, track: Track, start: datetime, end: datetime, to_csv: bool = False)\
+            -> tuple[Skater, ...]:
         self.cursor.execute(f"""SELECT * FROM events WHERE track = {track.id} AND date BETWEEN {start} AND {end}""")
         events_in_time_on_track = self.cursor.fetchall()
         event_ids = []

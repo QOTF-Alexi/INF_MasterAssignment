@@ -1,13 +1,5 @@
-import os
-import sys
 import json
 import sqlite3
-from datetime import datetime
-
-from skater import Skater
-from track import Track
-from event import Event
-from iceskatingreporter import Reporter
 
 
 # This function will open the JSON file and save it in a dictionary.
@@ -51,15 +43,16 @@ def configure_database(data):
             # Ignore did-not-finish results
             selector -= 1
             event_last = event_result_list[selector]
-        event_time = event_last["time"].split(sep=":")
+        event_time = event_last["time"]
+        event_time_split = event_time.split(sep=":")
         if len(event_time) == 2:
             # Convert minutes into seconds and add up
-            event_time[1] = float(event_time[1]) + float(event_time[0]) * 60.000
-            event_time.remove(event_time[0])
+            event_time_split[1] = float(event_time_split[1]) + float(event_time_split[0]) * 60.000
+            event_time_split.remove(event_time_split[0])
         else:
             # No minutes, so no conversion required
             pass
-        event_time_seconds = event_time[0]      # Float value
+        event_time_seconds = event_time_split[0]      # Float value
 
         for skater in event_result_list:
             skater_dict = skater["skater"]
@@ -69,29 +62,31 @@ def configure_database(data):
             skater_nationality = skater_dict["country"]
             skater_gender = skater_dict["gender"]
             skater_dob = skater_dict["dateOfBirth"]
-            cursor.execute(f"""INSERT OR IGNORE INTO skaters(id, first_name, last_name, nationality, gender,
+            cursor.execute("""INSERT OR IGNORE INTO skaters(id, first_name, last_name, nationality, gender,
                                                            date_of_birth)
                                VALUES(?, ?, ?, ?, ?, ?)""",
                            (skater_id, skater_firstname, skater_lastname, skater_nationality,
                             skater_gender, skater_dob))
+            cursor.execute("""INSERT OR IGNORE INTO event_skaters(skater_id, event_id) VALUES(?, ?)""",
+                           (skater_id, event_id))
 
-        cursor.execute(f"""INSERT OR IGNORE INTO events(id, name, track_id, date, distance, duration, laps, winner,
+        cursor.execute("""INSERT OR IGNORE INTO events(id, name, track_id, date, distance, duration, laps, winner,
                                                       category)
                            VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                        (event_id, event_title, event_track_id, event_date, event_distance,
                         event_time_seconds, event_lapcount, event_winner_name, event_category))
 
-        cursor.execute(f"""INSERT OR IGNORE INTO tracks(id, name, city, country, outdoor, altitude)
+        cursor.execute("""INSERT OR IGNORE INTO tracks(id, name, city, country, outdoor, altitude)
                            VALUES(?, ?, ?, ?, ?, ?)""",
                        (event_track_id, event_track_name, event_track_city, event_track_country,
                         event_track_outdoor, event_track_alt))
     conn.commit()   # Commit all changes at once.
 
 
-def main():
-    data = read_json_file()
-    configure_database(data)
+def setup():
+    json_database = read_json_file()
+    configure_database(json_database)
 
 
 if __name__ == "__main__":
-    main()
+    setup()

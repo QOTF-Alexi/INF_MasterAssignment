@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 import sqlite3
 
 from skater import Skater
@@ -6,23 +6,29 @@ from track import Track
 
 
 class Event:
-    def __init__(self, id: int, name: str, track_id: int, date: datetime, distance: int, duration: float, laps: int,
+    def __init__(self, id: int, name: str, track_id: int, date, distance: int, duration: float, laps: int,
                  winner: str, category: str) -> None:
         self.id = id
         self.name = name
         self.track_id = track_id
-        self.date = date
+        if type(date) is "datetime":
+            self.date = date
+        else:
+            self.date = datetime.strptime(date, "%Y-%m-%d")
         self.distance = distance
         self.duration = duration
         self.laps = laps
         self.winner = winner
         self.category = category
+        duration_minutes = str(int(duration // 60))
+        duration_seconds = "%3f".format(duration % 60)
+        self.duration_dt = ":".join([duration_minutes, duration_seconds])
 
     # Connect a skater to this event
     def add_skater(self, skater: Skater):
         conn = sqlite3.connect('iceskatingsapp.db')
         cursor = conn.cursor()
-        cursor.execute(f"""
+        cursor.execute("""
 INSERT INTO event_skaters(skater_id, event_id)
 VALUES (?, ?)""", (skater.id, self.id))
         conn.commit()
@@ -51,7 +57,7 @@ SELECT * FROM skaters WHERE id IN (SELECT skater_id FROM event_skaters WHERE eve
 
     # Converts event duration to specified format.
     def convert_duration(self, to_format: str) -> str:
-        converted = datetime.strptime(str(self.duration), "%S.%f")
+        converted = datetime.strptime(str(self.duration_dt), "%M:%S.%f")
         return converted.strftime(to_format)
 
     # Representation method

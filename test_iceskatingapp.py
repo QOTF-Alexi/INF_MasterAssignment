@@ -1,11 +1,12 @@
 from skater import Skater
 from event import Event
 from track import Track
+import iceskatingapp
 from datetime import datetime
 
-
+iceskatingapp.setup()
 testEvent = Event(1, "Essent ISU World Cup - 1500m Men Division A", 29, datetime(2003, 11, 8),
-                      1500, 117.920, 4, "Erben Wennemars", "M")
+                  1500, 117.920, 4, "Erben Wennemars", "M")
 
 
 # Test to check if the age of a skater is correct based on the date_of_birth
@@ -28,7 +29,8 @@ def test_amount_of_events_of_track():
 
 # Test to check if the returned date matches the specified format for that event date
 def test_event_date_conversion():
-    assert testEvent.convert_date("%m/%d/%y") == "11/8/2003"
+    assert testEvent.convert_date("%m/%d/%y") == "11/08/2003"
+
 
 # Test to check if the duration is converted from 1H19 to the specified format
 def test_event_duration_conversion():
