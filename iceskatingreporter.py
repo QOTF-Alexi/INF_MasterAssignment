@@ -140,7 +140,29 @@ class Reporter:
     # CSV example (this are also the headers):
     #   id, first_name, last_name, nationality, gender, date_of_birth
     def get_skaters_that_skated_track_between(self, track: Track, start: datetime, end: datetime, to_csv: bool = False) -> tuple[Skater, ...]:
-        pass
+        self.cursor.execute(f"""SELECT * FROM events WHERE track = {track.id} AND date BETWEEN {start} AND {end}""")
+        events_in_time_on_track = self.cursor.fetchall()
+        event_ids = []
+        for element in events_in_time_on_track:
+            event_ids.append(element[0])
+        self.cursor.execute(f"""SELECT * FROM event_skaters WHERE event_id in {event_ids}""")
+        skaters = self.cursor.fetchall()
+        if to_csv:
+            csvname = "".join(['Skaters on Track ', track.name, ' between period ', start, 'and', end, '.csv'])
+            if not exists(csvname):
+                with open(csvname, 'w', newline='') as csvfile:
+                    trackFile = csv.writer(csvfile, delimiter=' ', encoding='utf8')
+                    trackFile.writerow(['id', 'first_name', 'last_name', 'nationality', 'gender', 'date_of_birth'])
+            with open(csvname, 'w', newline='') as csvfile:
+                trackFile = csv.writer(csvfile, delimiter=' ', encoding='utf8')
+                for skater in skaters:
+                    trackFile.writerow(skater)
+            print("File saved as", csvname)
+        else:
+            skaters_tup = []
+            for skater in skaters:
+                skaters_tup.append(Skater(*skater))
+            return tuple(skaters_tup)
 
     # Which tracks are located in country X? ->tuple[Track, ...]
     # Based on given parameter `to_csv = True` should generate CSV file as  `Tracks in country X.csv`
