@@ -43,7 +43,7 @@ SELECT * FROM skaters WHERE id IN (SELECT skater_id FROM event_skaters WHERE eve
         cursor = conn.cursor()
         cursor.execute(f"""SELECT * FROM tracks WHERE id = {self.track_id}""")
         track = cursor.fetchone()
-        return track
+        return Track(*track)
 
     # Converts date to specified format.
     def convert_date(self, to_format: str) -> str:

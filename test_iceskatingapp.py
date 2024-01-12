@@ -28,11 +28,11 @@ def test_amount_of_events_of_track():
 
 # Test to check if the returned date matches the specified format for that event date
 def test_event_date_conversion():
-    raise NotImplementedError()
+    assert testEvent.convert_date("%m/%d/%y") == "11/8/2003"
 
 # Test to check if the duration is converted from 1H19 to the specified format
 def test_event_duration_conversion():
-    raise NotImplementedError()
+    assert testEvent.convert_duration("%M:%S") == "1:57"
 
 
 # Test to check the amount of skaters on a specified event
@@ -42,4 +42,4 @@ def test_amount_of_skaters_on_event():
 
 # Test to validate if the given track of a specified event is correct
 def test_track_on_event():
-    assert testEvent.get_track() == "?"
+    assert (testEvent.get_track()).id == 29 and (testEvent.get_track()).city == "Hamar"
